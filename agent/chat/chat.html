@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Automation Tester - Chat</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        header {
+            background: #1e293b;
+            padding: 16px 24px;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        h1 {
+            margin: 0;
+            font-size: 18px;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-badge {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-weight: 600;
+        }
+        #chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .message-node {
+            display: flex;
+            flex-direction: column;
+            max-width: 85%;
+        }
+        .user-node {
+            align-self: flex-end;
+        }
+        .agent-node {
+            align-self: flex-start;
+            width: 100%;
+            max-width: 900px;
+        }
+        .user-bubble {
+            background: #0284c7;
+            color: #ffffff;
+            padding: 12px 18px;
+            border-radius: 16px 16px 4px 16px;
+            font-size: 14px;
+            word-break: break-word;
+        }
+        .agent-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .agent-card h3 {
+            margin-top: 0;
+            color: #38bdf8;
+            font-size: 16px;
+        }
+        .agent-card table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 14px 0;
+            font-size: 13px;
+        }
+        .agent-card th, .agent-card td {
+            border: 1px solid #334155;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        .agent-card th {
+            background: #0f172a;
+            color: #94a3b8;
+        }
+        .agent-card a {
+            color: #38bdf8;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .agent-card a:hover {
+            text-decoration: underline;
+        }
+        .screenshots-strip {
+            display: flex;
+            gap: 12px;
+            margin-top: 14px;
+            overflow-x: auto;
+        }
+        .screenshot-thumb img {
+            height: 90px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .screenshot-thumb img:hover {
+            transform: scale(1.04);
+            border-color: #38bdf8;
+        }
+        .quick-starters {
+            padding: 10px 24px;
+            background: #162032;
+            border-top: 1px solid #334155;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            overflow-x: auto;
+        }
+        .quick-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #cbd5e1;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .quick-btn:hover {
+            background: #334155;
+            color: #ffffff;
+        }
+        footer {
+            background: #1e293b;
+            padding: 16px 24px;
+            border-top: 1px solid #334155;
+        }
+        #chat-form {
+            display: flex;
+            gap: 12px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        #prompt-input {
+            flex: 1;
+            padding: 12px 16px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 14px;
+            outline: none;
+        }
+        #prompt-input:focus {
+            border-color: #38bdf8;
+        }
+        #send-btn {
+            padding: 12px 24px;
+            background: #0284c7;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        #send-btn:hover {
+            background: #0369a1;
+        }
+        #send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>⚡ AI Automation Tester</h1>
+        <span class="status-badge">Single Agent • Gemini Engine Ready</span>
+    </header>
+
+    <div id="chat-container">
+        <div class="message-node agent-node">
+            <div class="agent-card">
+                <h3>Welcome to AI Automation Tester</h3>
+                <p style="color: #94a3b8; font-size: 13.5px; margin: 0;">
+                    Type your test instruction below or select a quick starter pill. The <strong>single Automation Agent</strong> will dynamically detect whether you want to run the <strong>Login flow</strong>, <strong>Registration flow</strong>, <strong>Profile flow</strong>, or <strong>All test cases</strong> from the test case repository!
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="quick-starters">
+        <span style="font-size: 12px; color: #94a3b8;">Quick Starters:</span>
+        <button class="quick-btn" data-prompt="Test all cases: http://localhost:4000 with login credentials: username demo and password Demo@1234">
+            🚀 All Test Cases
+        </button>
+        <button class="quick-btn" data-prompt="Test login flow for http://localhost:4000 with login credentials: username demo and password Demo@1234">
+            🔑 Login Flow Only
+        </button>
+        <button class="quick-btn" data-prompt="Create a Jira ticket for the login test failure">
+            🐞 Create Jira Ticket for Failure
+        </button>
+        <button class="quick-btn" data-prompt="Test Jira connection">
+            🔌 Test Jira Connection
+        </button>
+    </div>
+
+    <footer>
+        <form id="chat-form">
+            <input 
+                type="text" 
+                id="prompt-input" 
+                placeholder="e.g. Test login flow for http://localhost:4000 with login credentials: username demo and password Demo@1234" 
+                autocomplete="off"
+                required
+            >
+            <button type="submit" id="send-btn">Run Suite</button>
+        </form>
+    </footer>
+
+    <script>
+        const chatForm = document.getElementById('chat-form');
+        const promptInput = document.getElementById('prompt-input');
+        const sendBtn = document.getElementById('send-btn');
+        const container = document.getElementById('chat-container');
+
+        document.querySelectorAll('.quick-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                promptInput.value = btn.getAttribute('data-prompt');
+                promptInput.focus();
+            });
+        });
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const prompt = promptInput.value.trim();
+            if (!prompt) return;
+
+            appendUserMessage(prompt);
+            promptInput.value = '';
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span class="spinner"></span> Running Agent...';
+
+            const loadingNode = appendLoadingMessage();
+            scrollToBottom();
+
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: prompt })
+                });
+
+                const data = await res.json();
+                loadingNode.remove();
+                appendAgentResponse(data);
+            } catch (err) {
+                loadingNode.remove();
+                appendErrorResponse('Network connection error: ' + err.message);
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Run Suite';
+                scrollToBottom();
+            }
+        });
+
+        function scrollToBottom() {
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function appendUserMessage(text) {
+            const node = document.createElement('div');
+            node.className = 'message-node user-node';
+            node.innerHTML = `<div class="user-bubble">${escapeHtml(text)}</div>`;
+            container.appendChild(node);
+        }
+
+        function appendLoadingMessage() {
+            const node = document.createElement('div');
+            node.className = 'message-node agent-node';
+            node.innerHTML = `
+                <div class="agent-card">
+                    <p style="margin: 0; color: #38bdf8;">
+                        <span class="spinner" style="vertical-align: middle; margin-right: 8px;"></span>
+                        Automation Agent executing requested test cases from repository...
+                    </p>
+                </div>
+            `;
+            container.appendChild(node);
+            return node;
+        }
+
+        function appendAgentResponse(data) {
+            const node = document.createElement('div');
+            node.className = 'message-node agent-node';
+
+            let reportLink = '';
+            if (data.report_url) {
+                reportLink = `<p><a href="${data.report_url}" target="_blank">📄 Open Generated HTML Test Report ↗</a></p>`;
+            }
+
+            let screenshotsHtml = '';
+            if (data.screenshots && data.screenshots.length > 0) {
+                const thumbs = data.screenshots.map(s => 
+                    `<a href="${s}" target="_blank" class="screenshot-thumb"><img src="${s}" alt="Failure Screenshot"></a>`
+                ).join('');
+                screenshotsHtml = `
+                    <div style="margin-top: 12px;">
+                        <span style="font-size: 12px; color: #94a3b8;">Captured Screenshots:</span>
+                        <div class="screenshots-strip">${thumbs}</div>
+                    </div>
+                `;
+            }
+
+            node.innerHTML = `
+                <div class="agent-card">
+                    <div style="line-height: 1.6;">${formatMarkdown(data.reply || '')}</div>
+                    ${reportLink}
+                    ${screenshotsHtml}
+                </div>
+            `;
+            container.appendChild(node);
+        }
+
+        function appendErrorResponse(err) {
+            const node = document.createElement('div');
+            node.className = 'message-node agent-node';
+            node.innerHTML = `
+                <div class="agent-card" style="border-color: #ef4444;">
+                    <p style="margin: 0; color: #f87171;">⚠️ ${escapeHtml(err)}</p>
+                </div>
+            `;
+            container.appendChild(node);
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function formatMarkdown(text) {
+            if (!text) return '';
+            let html = escapeHtml(text);
+            html = html.replace(/\[(.*?)\]\((https?:\/\/[^\s\)]+)\)/g, '<a href="$2" target="_blank" style="color: #38bdf8; text-decoration: underline; font-weight: 600;">$1 ↗</a>');
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/`([^`]+)`/g, '<code style="background: rgba(0,0,0,0.3); padding: 2px 4px; border-radius: 4px;">$1</code>');
+            html = html.replace(/\n/g, '<br>');
+            return html;
+        }
+    </script>
+</body>
+</html>

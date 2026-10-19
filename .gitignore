@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+agent/reports/
+.pytest_cache/
+.mypy_cache/
+test-results/
+*.png
+.env

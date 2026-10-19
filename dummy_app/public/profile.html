@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - Dummy App</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: #1e293b; padding: 32px; border-radius: 12px; width: 100%; max-width: 480px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid #334155; padding-bottom: 16px; }
+        h2 { margin: 0; color: #38bdf8; }
+        .logout-btn { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; }
+        .logout-btn:hover { background: #dc2626; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; background: #0f172a; padding: 16px; border-radius: 8px; }
+        .info-item { display: flex; flex-direction: column; }
+        .info-label { font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 600; margin-bottom: 4px; }
+        .info-value { font-size: 14px; color: #f8fafc; font-weight: 500; }
+        .edit-section { border-top: 1px solid #334155; padding-top: 20px; }
+        .form-group { margin-bottom: 14px; }
+        label { display: block; margin-bottom: 6px; font-size: 13px; color: #94a3b8; }
+        input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #fff; box-sizing: border-box; }
+        input:focus { outline: none; border-color: #38bdf8; }
+        .save-btn { width: 100%; padding: 12px; border: none; border-radius: 6px; background: #10b981; color: white; font-weight: bold; cursor: pointer; margin-top: 6px; }
+        .save-btn:hover { background: #059669; }
+        .alert-success { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #6ee7b7; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 14px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="header">
+            <h2>User Profile</h2>
+            <button id="logout-btn" data-testid="logout-btn" class="logout-btn">Log Out</button>
+        </div>
+
+        <div id="save-success" data-testid="save-success" class="alert-success"></div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Full Name</span>
+                <span id="profile-name" data-testid="profile-name" class="info-value">Loading...</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Email Address</span>
+                <span id="profile-email" data-testid="profile-email" class="info-value">Loading...</span>
+            </div>
+            <div class="info-item" style="grid-column: span 2;">
+                <span class="info-label">Phone Number</span>
+                <span id="profile-phone" data-testid="profile-phone" class="info-value">Loading...</span>
+            </div>
+        </div>
+
+        <div class="edit-section">
+            <h3 style="margin-top: 0; font-size: 16px; color: #cbd5e1;">Edit Profile</h3>
+            <form id="edit-form">
+                <div class="form-group">
+                    <label for="edit-name">Update Name</label>
+                    <input type="text" id="edit-name" data-testid="edit-name">
+                </div>
+                <div class="form-group">
+                    <label for="edit-phone">Update Phone</label>
+                    <input type="tel" id="edit-phone" data-testid="edit-phone">
+                </div>
+                <button type="submit" id="save-profile" data-testid="save-profile" class="save-btn">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const nameEl = document.getElementById('profile-name');
+        const emailEl = document.getElementById('profile-email');
+        const phoneEl = document.getElementById('profile-phone');
+        const editName = document.getElementById('edit-name');
+        const editPhone = document.getElementById('edit-phone');
+        const saveSuccess = document.getElementById('save-success');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        async function loadProfile() {
+            try {
+                const res = await fetch('/api/profile');
+                if (res.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+                const data = await res.json();
+                if (data.success && data.user) {
+                    nameEl.textContent = data.user.name;
+                    emailEl.textContent = data.user.email;
+                    phoneEl.textContent = data.user.phone;
+                    editName.value = data.user.name;
+                    editPhone.value = data.user.phone;
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        document.getElementById('edit-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            saveSuccess.style.display = 'none';
+
+            const payload = {
+                name: editName.value.trim(),
+                phone: editPhone.value.trim()
+            };
+
+            try {
+                const res = await fetch('/api/profile', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success && data.user) {
+                    nameEl.textContent = data.user.name;
+                    phoneEl.textContent = data.user.phone;
+                    saveSuccess.textContent = 'Profile updated successfully!';
+                    saveSuccess.style.display = 'block';
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+                window.location.href = '/login';
+            } catch (err) {
+                window.location.href = '/login';
+            }
+        });
+
+        loadProfile();
+    </script>
+</body>
+</html>
