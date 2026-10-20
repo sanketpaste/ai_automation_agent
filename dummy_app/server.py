@@ -3,6 +3,7 @@ from typing import Dict, Any, Tuple
 from flask import Flask, request, jsonify, session, redirect, send_from_directory
 from flask.typing import ResponseReturnValue
 
+
 PUBLIC_DIR: Path = Path(__file__).resolve().parent / "public"
 
 app: Flask = Flask(__name__, static_folder=str(PUBLIC_DIR))
