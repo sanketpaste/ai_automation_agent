@@ -261,7 +261,7 @@ ai-automation-tester/
 ├── requirements.txt                  # Python dependencies
 ├── run.py                            # Master Task Runner (CLI)
 ├── README.md                         # Quick reference guide
-├── PROJECT_DOCUMENTATION.md          # Original project architecture doc
+├── PROJECT_ARCHITECTURE.md           # Complete architectural and flow documentation
 │
 ├── agent/                            # Main AI Test Engine Package
 │   ├── __init__.py                   # Package initializer
