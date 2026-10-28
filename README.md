@@ -1,15 +1,12 @@
 # AI Automation Tester
 
-
 A multi-agent AI automation testing system built with **Playwright for Python**, **Flask**, and **pydantic**, featuring an interactive chat interface and a full test dummy application.
-
 
 > 📖 **Documentation Links**:
 > - [Project Architecture Guide (Technical Documentation)](PROJECT_ARCHITECTURE.md)
 > - [Complete Hinglish Learning Guide](AI_AUTOMATION_TESTER_HINGLISH_GUIDE.md)
 
 ---
-
 ## 🛠️ Tech Stack
 
 - **Python 3.11+** with strict type hints (`mypy --strict`)
